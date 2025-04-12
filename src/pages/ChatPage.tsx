@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useUser } from '../context/UserContext';
 
 interface User {
-  id: string;
+  _id: string;
+  id: string; // přidaný alias pro kompatibilitu
   username: string;
   email: string;
 }
@@ -20,11 +21,20 @@ const ChatPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
+    if (!user) {
+      console.log('❗ Uživatelský kontext ještě není načten.');
+      return;
+    }
+
     const fetchUsers = async () => {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.log('❗ Token není dostupný.');
+        return;
+      }
 
       try {
         const res = await fetch('http://localhost:5000/api/users', {
@@ -34,9 +44,17 @@ const ChatPage = () => {
         });
 
         const data = await res.json();
-        setUsers(data.filter((u: User) => u.id !== user?.id)); // neukazuj sebe
+        console.log('✅ Načtení uživatelé:', data);
+        console.log('🔍 Přihlášený user:', user);
+
+        const withId = data.map((u: any) => ({
+          ...u,
+          id: u._id,
+        }));
+
+        setUsers(withId);
       } catch (error) {
-        console.error('Chyba při načítání uživatelů:', error);
+        console.error('❌ Chyba při načítání uživatelů:', error);
       }
     };
 
@@ -59,7 +77,6 @@ const ChatPage = () => {
 
         const data = await res.json();
 
-        // Filtrovat jen zprávy mezi tebou a vybraným uživatelem
         const filtered = data.filter((msg: Message) =>
           (msg.sender.id === user?.id && msg.recipient.id === selectedUser.id) ||
           (msg.sender.id === selectedUser.id && msg.recipient.id === user?.id)
@@ -74,9 +91,41 @@ const ChatPage = () => {
     fetchMessages();
   }, [selectedUser, user]);
 
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedUser) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('http://localhost:5000/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          recipientId: selectedUser.id,
+          content: newMessage,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessages((prev) => [...prev, data]);
+        setNewMessage('');
+      } else {
+        console.error('Chyba při odesílání:', data.message);
+      }
+    } catch (err) {
+      console.error('Chyba při spojení:', err);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', padding: '2rem' }}>
-      {/* Levý panel – kontakty */}
+      {/* Kontakty */}
       <div style={{ width: '250px', borderRight: '1px solid #ccc', paddingRight: '1rem' }}>
         <h3>Uživatelé</h3>
         <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -96,7 +145,7 @@ const ChatPage = () => {
         </ul>
       </div>
 
-      {/* Pravý panel – zprávy */}
+      {/* Chat panel */}
       <div style={{ flex: 1, paddingLeft: '2rem' }}>
         {selectedUser ? (
           <>
@@ -123,6 +172,19 @@ const ChatPage = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div style={{ marginTop: '1rem' }}>
+              <input
+                type="text"
+                placeholder="Napiš zprávu..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                style={{ width: '80%', padding: '0.5rem' }}
+              />
+              <button onClick={sendMessage} style={{ padding: '0.5rem 1rem', marginLeft: '0.5rem' }}>
+                Odeslat
+              </button>
             </div>
           </>
         ) : (
