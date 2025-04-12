@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { user, setUser } = useUser(); // 🔄 musí být voláno hned nahoře!
 
   const [formData, setFormData] = useState({
     email: '',
@@ -10,6 +12,11 @@ const LoginPage = () => {
   });
 
   const [message, setMessage] = useState('');
+
+  // 🔐 Přesměrování až po hookách
+  if (user) {
+    return <Navigate to="/chat" replace />;
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -33,9 +40,8 @@ const LoginPage = () => {
       if (!response.ok) {
         setMessage(data.message || 'Přihlášení selhalo');
       } else {
-        // Uložení tokenu
         localStorage.setItem('token', data.token);
-        // Přesměrování
+        setUser(data.user); // ✅ nastavíme do kontextu
         navigate('/chat');
       }
     } catch (error) {
