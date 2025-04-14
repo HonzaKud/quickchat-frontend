@@ -33,34 +33,19 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    if (!user) {
-      console.log('❗ Uživatelský kontext ještě není načten.');
-      return;
-    }
+    if (!user) return;
 
     const fetchUsers = async () => {
       const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('❗ Token není dostupný.');
-        return;
-      }
+      if (!token) return;
 
       try {
         const res = await fetch('http://localhost:5000/api/users', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
-        console.log('✅ Načtení uživatelé:', data);
-        console.log('🔍 Přihlášený user:', user);
-
-        const withId = data.map((u: any) => ({
-          ...u,
-          id: u._id,
-        }));
-
+        const withId = data.map((u: any) => ({ ...u, id: u._id }));
         setUsers(withId);
       } catch (error) {
         console.error('❌ Chyba při načítání uživatelů:', error);
@@ -79,16 +64,15 @@ const ChatPage = () => {
 
       try {
         const res = await fetch('http://localhost:5000/api/messages', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
 
-        const filtered = data.filter((msg: Message) =>
-          (msg.sender.id === user?.id && msg.recipient.id === selectedUser.id) ||
-          (msg.sender.id === selectedUser.id && msg.recipient.id === user?.id)
+        const filtered = data.filter(
+          (msg: Message) =>
+            (msg.sender.id === user?.id && msg.recipient.id === selectedUser.id) ||
+            (msg.sender.id === selectedUser.id && msg.recipient.id === user?.id)
         );
 
         setMessages(filtered);
@@ -133,27 +117,28 @@ const ChatPage = () => {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-        <button onClick={handleLogout} style={{ padding: '0.5rem 1rem' }}>
+    <div className="p-6">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+        >
           Odhlásit se
         </button>
       </div>
 
-      <div style={{ display: 'flex' }}>
-        {/* Kontakty */}
-        <div style={{ width: '250px', borderRight: '1px solid #ccc', paddingRight: '1rem' }}>
-          <h3>Uživatelé</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+      <div className="flex bg-white shadow-md rounded-xl overflow-hidden min-h-[500px]">
+        {/* Uživatelé */}
+        <div className="w-64 border-r p-4 bg-gray-100">
+          <h3 className="text-lg font-semibold mb-4">Uživatelé</h3>
+          <ul className="space-y-2">
             {users.map((u) => (
               <li
                 key={u.id}
                 onClick={() => setSelectedUser(u)}
-                style={{
-                  cursor: 'pointer',
-                  padding: '0.5rem',
-                  backgroundColor: selectedUser?.id === u.id ? '#f0f0f0' : 'transparent',
-                }}
+                className={`cursor-pointer p-2 rounded ${
+                  selectedUser?.id === u.id ? 'bg-blue-100' : 'hover:bg-gray-200'
+                }`}
               >
                 {u.username}
               </li>
@@ -161,28 +146,23 @@ const ChatPage = () => {
           </ul>
         </div>
 
-        {/* Chat panel */}
-        <div style={{ flex: 1, paddingLeft: '2rem' }}>
+        {/* Chat */}
+        <div className="flex-1 p-6 flex flex-col">
           {selectedUser ? (
             <>
-              <h3>Chat s {selectedUser.username}</h3>
-              <div style={{ border: '1px solid #ddd', padding: '1rem', height: '400px', overflowY: 'auto' }}>
+              <h3 className="text-lg font-bold mb-4">Chat s {selectedUser.username}</h3>
+              <div className="flex-1 overflow-y-auto mb-4 space-y-2">
                 {messages.map((msg) => (
                   <div
                     key={msg._id}
-                    style={{
-                      textAlign: msg.sender.id === user?.id ? 'right' : 'left',
-                      marginBottom: '1rem',
-                    }}
+                    className={`flex ${
+                      msg.sender.id === user?.id ? 'justify-end' : 'justify-start'
+                    }`}
                   >
                     <div
-                      style={{
-                        display: 'inline-block',
-                        backgroundColor: msg.sender.id === user?.id ? '#dcf8c6' : '#eee',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '10px',
-                        maxWidth: '70%',
-                      }}
+                      className={`rounded-xl px-4 py-2 max-w-[70%] ${
+                        msg.sender.id === user?.id ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                      }`}
                     >
                       {msg.content}
                     </div>
@@ -190,21 +170,24 @@ const ChatPage = () => {
                 ))}
               </div>
 
-              <div style={{ marginTop: '1rem' }}>
+              <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Napiš zprávu..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  style={{ width: '80%', padding: '0.5rem' }}
+                  className="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
-                <button onClick={sendMessage} style={{ padding: '0.5rem 1rem', marginLeft: '0.5rem' }}>
+                <button
+                  onClick={sendMessage}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                >
                   Odeslat
                 </button>
               </div>
             </>
           ) : (
-            <p>Vyber uživatele, se kterým chceš chatovat.</p>
+            <p className="text-gray-600">Vyber uživatele, se kterým chceš chatovat.</p>
           )}
         </div>
       </div>
