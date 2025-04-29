@@ -26,6 +26,8 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
+  const API_URL = process.env.REACT_APP_API_URL;
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -33,14 +35,14 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !API_URL) return;
 
     const fetchUsers = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
       try {
-        const res = await fetch('http://localhost:5000/api/users', {
+        const res = await fetch(`${API_URL}/api/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -53,17 +55,17 @@ const ChatPage = () => {
     };
 
     fetchUsers();
-  }, [user]);
+  }, [user, API_URL]);
 
   useEffect(() => {
-    if (!selectedUser) return;
+    if (!selectedUser || !API_URL) return;
 
     const fetchMessages = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
       try {
-        const res = await fetch('http://localhost:5000/api/messages', {
+        const res = await fetch(`${API_URL}/api/messages`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -82,16 +84,16 @@ const ChatPage = () => {
     };
 
     fetchMessages();
-  }, [selectedUser, user]);
+  }, [selectedUser, user, API_URL]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedUser) return;
+    if (!newMessage.trim() || !selectedUser || !API_URL) return;
 
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/messages', {
+      const res = await fetch(`${API_URL}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
