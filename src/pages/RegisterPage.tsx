@@ -18,13 +18,16 @@ const RegisterPage = () => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/auth/register`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await response.json();
       if (!response.ok) {
@@ -40,7 +43,9 @@ const RegisterPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">Registrace</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
+          Registrace
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
