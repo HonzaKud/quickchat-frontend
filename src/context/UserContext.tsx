@@ -20,14 +20,15 @@ export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token || !API_URL) return;
 
       try {
-        const res = await fetch('http://localhost:5000/api/users/me', {
+        const res = await fetch(`${API_URL}/api/users/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -36,7 +37,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         if (!res.ok) throw new Error('Chyba při ověření');
 
         const data = await res.json();
-        setUser(data.user || data); // záleží na tvé odpovědi z backendu
+        setUser(data.user || data); // přizpůsob podle struktury odpovědi
       } catch (error) {
         console.error('Chyba při získávání uživatele:', error);
         setUser(null);
@@ -44,7 +45,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     fetchUser();
-  }, []);
+  }, [API_URL]);
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
