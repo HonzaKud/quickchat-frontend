@@ -73,8 +73,8 @@ const ChatPage = () => {
 
         const filtered = data.filter(
           (msg: Message) =>
-            (msg.sender.id === user?.id && msg.recipient.id === selectedUser.id) ||
-            (msg.sender.id === selectedUser.id && msg.recipient.id === user?.id)
+            (msg.sender._id === user?.id && msg.recipient._id === selectedUser.id) ||
+            (msg.sender._id === selectedUser.id && msg.recipient._id === user?.id)
         );
 
         setMessages(filtered);
@@ -158,12 +158,12 @@ const ChatPage = () => {
                   <div
                     key={msg._id}
                     className={`flex ${
-                      msg.sender.id === user?.id ? 'justify-end' : 'justify-start'
+                      msg.sender._id === user?.id ? 'justify-end' : 'justify-start'
                     }`}
                   >
                     <div
                       className={`rounded-xl px-4 py-2 max-w-[70%] ${
-                        msg.sender.id === user?.id ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                        msg.sender._id === user?.id ? 'bg-blue-500 text-white' : 'bg-gray-200'
                       }`}
                     >
                       {msg.content}
