@@ -28,6 +28,7 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState('');
 
   const socket = useRef<Socket | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const API_URL = process.env.REACT_APP_API_URL;
 
   const handleLogout = () => {
@@ -36,7 +37,6 @@ const ChatPage = () => {
     navigate('/login');
   };
 
-  // Připojení socketu a naslouchání zprávám
   useEffect(() => {
     if (user && API_URL && !socket.current) {
       socket.current = io(API_URL);
@@ -57,7 +57,6 @@ const ChatPage = () => {
     };
   }, [user, selectedUser, API_URL]);
 
-  // Načtení uživatelů
   useEffect(() => {
     if (!user || !API_URL) return;
 
@@ -81,7 +80,6 @@ const ChatPage = () => {
     fetchUsers();
   }, [user, API_URL]);
 
-  // Načtení zpráv pro vybraného uživatele
   useEffect(() => {
     if (!selectedUser || !API_URL) return;
 
@@ -111,7 +109,10 @@ const ChatPage = () => {
     fetchMessages();
   }, [selectedUser, user, API_URL]);
 
-  // Odeslání zprávy
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedUser || !API_URL) return;
 
@@ -179,9 +180,7 @@ const ChatPage = () => {
         <div className="flex-1 p-6 flex flex-col">
           {selectedUser ? (
             <>
-              <h3 className="text-lg font-bold mb-4">
-                Chat s {selectedUser.username}
-              </h3>
+              <h3 className="text-lg font-bold mb-4">Chat s {selectedUser.username}</h3>
               <div className="flex-1 overflow-y-auto mb-4 space-y-2">
                 {messages.map((msg) => (
                   <div
@@ -201,6 +200,7 @@ const ChatPage = () => {
                     </div>
                   </div>
                 ))}
+                <div ref={chatEndRef} />
               </div>
 
               <div className="flex gap-2">
