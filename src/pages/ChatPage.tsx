@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { io, Socket } from 'socket.io-client';
 
 interface User {
   _id: string;
@@ -26,6 +27,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
+  const socket = useRef<Socket | null>(null);
   const API_URL = process.env.REACT_APP_API_URL;
 
   const handleLogout = () => {
@@ -34,6 +36,28 @@ const ChatPage = () => {
     navigate('/login');
   };
 
+  // Připojení socketu a naslouchání zprávám
+  useEffect(() => {
+    if (user && API_URL && !socket.current) {
+      socket.current = io(API_URL);
+      socket.current.emit('join', user.id);
+
+      socket.current.on('newMessage', (msg: Message) => {
+        if (
+          msg.sender._id === selectedUser?._id ||
+          msg.recipient._id === selectedUser?._id
+        ) {
+          setMessages((prev) => [...prev, msg]);
+        }
+      });
+    }
+
+    return () => {
+      socket.current?.disconnect();
+    };
+  }, [user, selectedUser, API_URL]);
+
+  // Načtení uživatelů
   useEffect(() => {
     if (!user || !API_URL) return;
 
@@ -57,6 +81,7 @@ const ChatPage = () => {
     fetchUsers();
   }, [user, API_URL]);
 
+  // Načtení zpráv pro vybraného uživatele
   useEffect(() => {
     if (!selectedUser || !API_URL) return;
 
@@ -86,6 +111,7 @@ const ChatPage = () => {
     fetchMessages();
   }, [selectedUser, user, API_URL]);
 
+  // Odeslání zprávy
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedUser || !API_URL) return;
 
@@ -109,6 +135,7 @@ const ChatPage = () => {
 
       if (res.ok) {
         setMessages((prev) => [...prev, data]);
+        socket.current?.emit('sendMessage', data);
         setNewMessage('');
       } else {
         console.error('Chyba při odesílání:', data.message);
@@ -152,7 +179,9 @@ const ChatPage = () => {
         <div className="flex-1 p-6 flex flex-col">
           {selectedUser ? (
             <>
-              <h3 className="text-lg font-bold mb-4">Chat s {selectedUser.username}</h3>
+              <h3 className="text-lg font-bold mb-4">
+                Chat s {selectedUser.username}
+              </h3>
               <div className="flex-1 overflow-y-auto mb-4 space-y-2">
                 {messages.map((msg) => (
                   <div
@@ -163,7 +192,9 @@ const ChatPage = () => {
                   >
                     <div
                       className={`rounded-xl px-4 py-2 max-w-[70%] ${
-                        msg.sender._id === user?.id ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                        msg.sender._id === user?.id
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200'
                       }`}
                     >
                       {msg.content}
@@ -189,7 +220,9 @@ const ChatPage = () => {
               </div>
             </>
           ) : (
-            <p className="text-gray-600">Vyber uživatele, se kterým chceš chatovat.</p>
+            <p className="text-gray-600">
+              Vyber uživatele, se kterým chceš chatovat.
+            </p>
           )}
         </div>
       </div>
