@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -43,7 +44,19 @@ const RegisterPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
+        {/* Úvodní informace */}
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-bold text-blue-600 mb-2">QuickChat</h1>
+          <p className="text-gray-700 mb-1">Založ si účet a začni konverzovat</p>
+          <ul className="text-sm text-gray-600 list-disc list-inside">
+            <li>📝 Rychlá a jednoduchá registrace</li>
+            <li>🔐 Zabezpečení přes JWT token</li>
+            <li>🤝 Spoj se s dalšími uživateli</li>
+          </ul>
+        </div>
+
+        {/* Registrační formulář */}
+        <h2 className="text-2xl font-semibold mb-4 text-center text-gray-800">
           Registrace
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,9 +94,18 @@ const RegisterPage = () => {
             Registrovat
           </button>
         </form>
+
         {message && (
           <p className="text-center mt-4 text-sm text-gray-700">{message}</p>
         )}
+
+        {/* Odkaz na přihlášení */}
+        <p className="mt-6 text-sm text-center text-gray-600">
+          Už máš účet?{' '}
+          <Link to="/login" className="text-blue-600 hover:underline">
+            Přihlas se
+          </Link>
+        </p>
       </div>
     </div>
   );
