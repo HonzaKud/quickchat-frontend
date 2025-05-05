@@ -38,26 +38,31 @@ const ChatPage = () => {
     navigate('/login');
   };
 
+  // ⏳ Loading
   if (loading) {
     return <div className="p-6 text-gray-500">Načítání uživatele...</div>;
   }
 
+  // ⛔ Redirect if not logged in
   if (!user) {
     navigate('/login');
     return null;
   }
 
-  // ✅ Socket připojení
+  // 🔌 Socket připojení
   useEffect(() => {
     if (user && API_URL && !socket.current) {
       socket.current = io(API_URL);
       socket.current.emit('join', user.id);
 
       socket.current.on('newMessage', (msg: Message) => {
-        if (
+        const isForMe =
+          msg.sender._id === user.id || msg.recipient._id === user.id;
+        const isCurrentChat =
           msg.sender._id === selectedUser?._id ||
-          msg.recipient._id === selectedUser?._id
-        ) {
+          msg.recipient._id === selectedUser?._id;
+
+        if (isForMe && isCurrentChat) {
           setMessages((prev) => [...prev, msg]);
         }
       });
@@ -68,7 +73,7 @@ const ChatPage = () => {
     };
   }, [user, selectedUser, API_URL]);
 
-  // ✅ Načtení uživatelů
+  // 👥 Načtení uživatelů
   useEffect(() => {
     if (!user || !API_URL) return;
 
@@ -81,21 +86,23 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) throw new Error('Chyba při načítání uživatelů');
         const data: User[] = await res.json();
 
-        const withId = data
-          .filter((u) => u._id !== user.id)
-          .map((u) => ({ ...u, id: u._id }));
+        const filteredUsers = data
+          .filter((u: User) => u._id !== user.id)
+          .map((u: User) => ({ ...u, id: u._id }));
 
-        setUsers(withId);
+        setUsers(filteredUsers);
 
         const saved = localStorage.getItem('selectedUser');
         if (saved) {
           const parsed = JSON.parse(saved);
-          const match = withId.find((u) => u.id === parsed.id);
-          if (match) setSelectedUser(match);
-          else setSelectedUser(null);
+          const match = filteredUsers.find((u) => u.id === parsed.id);
+          if (match) {
+            setSelectedUser(match);
+          } else {
+            setSelectedUser(null);
+          }
         }
       } catch (error) {
         console.error('❌ Chyba při načítání uživatelů:', error);
@@ -105,7 +112,7 @@ const ChatPage = () => {
     fetchUsers();
   }, [user, API_URL]);
 
-  // ✅ Načtení zpráv
+  // 📩 Načtení zpráv
   useEffect(() => {
     if (!selectedUser || !user || !API_URL) return;
 
@@ -120,17 +127,18 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) throw new Error('Chyba při načítání zpráv');
-        const data: Message[] = await res.json();
+        const data = await res.json();
 
         const filtered = data
           .filter(
-            (msg) =>
-              (msg.sender._id === user.id && msg.recipient._id === selectedUser.id) ||
-              (msg.sender._id === selectedUser.id && msg.recipient._id === user.id)
+            (msg: Message) =>
+              (msg.sender._id === user.id &&
+                msg.recipient._id === selectedUser.id) ||
+              (msg.sender._id === selectedUser.id &&
+                msg.recipient._id === user.id)
           )
           .sort(
-            (a, b) =>
+            (a: Message, b: Message) =>
               new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
           );
 
@@ -143,11 +151,12 @@ const ChatPage = () => {
     fetchMessages();
   }, [selectedUser, user, API_URL]);
 
-  // 🔽 Scroll na konec
+  // 🔽 Auto-scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // ✉️ Odeslání zprávy
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedUser || !API_URL) return;
 
@@ -193,6 +202,7 @@ const ChatPage = () => {
       </div>
 
       <div className="flex bg-white shadow-md rounded-xl overflow-hidden min-h-[500px]">
+        {/* Uživatelé */}
         <div className="w-64 border-r p-4 bg-gray-100">
           <h3 className="text-lg font-semibold mb-4">Uživatelé</h3>
           <ul className="space-y-2">
@@ -210,6 +220,7 @@ const ChatPage = () => {
           </ul>
         </div>
 
+        {/* Chat */}
         <div className="flex-1 p-6 flex flex-col">
           {selectedUser ? (
             <>
@@ -255,7 +266,9 @@ const ChatPage = () => {
               </div>
             </>
           ) : (
-            <p className="text-gray-600">Vyber uživatele, se kterým chceš chatovat.</p>
+            <p className="text-gray-600">
+              Vyber uživatele, se kterým chceš chatovat.
+            </p>
           )}
         </div>
       </div>
