@@ -19,7 +19,7 @@ interface Message {
 }
 
 const ChatPage = () => {
-  const { user, setUser } = useUser();
+  const { user, setUser, loading } = useUser();
   const navigate = useNavigate();
 
   const [users, setUsers] = useState<User[]>([]);
@@ -42,6 +42,11 @@ const ChatPage = () => {
     setUser(null);
     navigate('/login');
   };
+
+  // Pokud se načítá uživatel, nevracej komponentu
+  if (loading) {
+    return <div className="p-6 text-gray-500">Načítání uživatele...</div>;
+  }
 
   // Socket připojení
   useEffect(() => {
