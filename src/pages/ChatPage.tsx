@@ -38,35 +38,23 @@ const ChatPage = () => {
     navigate('/login');
   };
 
-  // ⏳ Loading
-  if (loading) {
-    return <div className="p-6 text-gray-500">Načítání uživatele...</div>;
-  }
-
-  // ⛔ Redirect if not logged in
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
-
   // 🔌 Socket připojení
   useEffect(() => {
-    if (user && API_URL && !socket.current) {
-      socket.current = io(API_URL);
-      socket.current.emit('join', user.id);
+    if (!user || !API_URL || socket.current) return;
 
-      socket.current.on('newMessage', (msg: Message) => {
-        const isForMe =
-          msg.sender._id === user.id || msg.recipient._id === user.id;
-        const isCurrentChat =
-          msg.sender._id === selectedUser?._id ||
-          msg.recipient._id === selectedUser?._id;
+    socket.current = io(API_URL);
+    socket.current.emit('join', user.id);
 
-        if (isForMe && isCurrentChat) {
-          setMessages((prev) => [...prev, msg]);
-        }
-      });
-    }
+    socket.current.on('newMessage', (msg: Message) => {
+      const isForMe = msg.sender._id === user.id || msg.recipient._id === user.id;
+      const isCurrentChat =
+        msg.sender._id === selectedUser?._id ||
+        msg.recipient._id === selectedUser?._id;
+
+      if (isForMe && isCurrentChat) {
+        setMessages((prev) => [...prev, msg]);
+      }
+    });
 
     return () => {
       socket.current?.disconnect();
@@ -132,10 +120,8 @@ const ChatPage = () => {
         const filtered = data
           .filter(
             (msg: Message) =>
-              (msg.sender._id === user.id &&
-                msg.recipient._id === selectedUser.id) ||
-              (msg.sender._id === selectedUser.id &&
-                msg.recipient._id === user.id)
+              (msg.sender._id === user.id && msg.recipient._id === selectedUser.id) ||
+              (msg.sender._id === selectedUser.id && msg.recipient._id === user.id)
           )
           .sort(
             (a: Message, b: Message) =>
@@ -189,6 +175,17 @@ const ChatPage = () => {
       console.error('Chyba při spojení:', err);
     }
   };
+
+  // ⏳ Loading
+  if (loading) {
+    return <div className="p-6 text-gray-500">Načítání uživatele...</div>;
+  }
+
+  // ⛔ Redirect if not logged in
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
     <div className="p-6">
