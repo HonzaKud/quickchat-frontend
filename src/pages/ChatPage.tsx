@@ -70,7 +70,12 @@ const ChatPage = () => {
         });
 
         const data = await res.json();
-        const withId = data.map((u: any) => ({ ...u, id: u._id }));
+
+        // Vyloučíme aktuálního uživatele
+        const withId = data
+          .filter((u: any) => u._id !== user?.id)
+          .map((u: any) => ({ ...u, id: u._id }));
+
         setUsers(withId);
       } catch (error) {
         console.error('❌ Chyba při načítání uživatelů:', error);
@@ -220,9 +225,7 @@ const ChatPage = () => {
               </div>
             </>
           ) : (
-            <p className="text-gray-600">
-              Vyber uživatele, se kterým chceš chatovat.
-            </p>
+            <p className="text-gray-600">Vyber uživatele, se kterým chceš chatovat.</p>
           )}
         </div>
       </div>
