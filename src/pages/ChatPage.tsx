@@ -33,37 +33,34 @@ const ChatPage = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('selectedUser');
     setUser(null);
     navigate('/login');
   };
 
-  // 🔌 Socket připojení
+  // Socket připojení
   useEffect(() => {
-    if (!user || !API_URL || socket.current) return;
+    if (user && API_URL && !socket.current) {
+      socket.current = io(API_URL);
+      socket.current.emit('join', user.id);
 
-    socket.current = io(API_URL);
-    socket.current.emit('join', user.id);
-
-    socket.current.on('newMessage', (msg: Message) => {
-      const isForMe = msg.sender._id === user.id || msg.recipient._id === user.id;
-      const isCurrentChat =
-        msg.sender._id === selectedUser?._id ||
-        msg.recipient._id === selectedUser?._id;
-
-      if (isForMe && isCurrentChat) {
-        setMessages((prev) => [...prev, msg]);
-      }
-    });
+      socket.current.on('newMessage', (msg: Message) => {
+        if (
+          msg.sender._id === selectedUser?._id ||
+          msg.recipient._id === selectedUser?._id
+        ) {
+          setMessages((prev) => [...prev, msg]);
+        }
+      });
+    }
 
     return () => {
       socket.current?.disconnect();
     };
   }, [user, selectedUser, API_URL]);
 
-  // 👥 Načtení uživatelů
+  // Načtení uživatelů
   useEffect(() => {
-    if (!user || !API_URL) return;
+    if (loading || !user || !API_URL) return;
 
     const fetchUsers = async () => {
       const token = localStorage.getItem('token');
@@ -74,37 +71,24 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const data: User[] = await res.json();
+        const data = await res.json();
 
-        const filteredUsers = data
-          .filter((u: User) => u._id !== user.id)
-          .map((u: User) => ({ ...u, id: u._id }));
+        const withId = data
+          .filter((u: any) => u._id !== user?.id)
+          .map((u: any) => ({ ...u, id: u._id }));
 
-        setUsers(filteredUsers);
-
-        const saved = localStorage.getItem('selectedUser');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const match = filteredUsers.find((u) => u.id === parsed.id);
-          if (match) {
-            setSelectedUser(match);
-          } else {
-            setSelectedUser(null);
-          }
-        }
+        setUsers(withId);
       } catch (error) {
         console.error('❌ Chyba při načítání uživatelů:', error);
       }
     };
 
     fetchUsers();
-  }, [user, API_URL]);
+  }, [user, API_URL, loading]);
 
-  // 📩 Načtení zpráv
+  // Načtení zpráv
   useEffect(() => {
-    if (!selectedUser || !user || !API_URL) return;
-
-    localStorage.setItem('selectedUser', JSON.stringify(selectedUser));
+    if (loading || !selectedUser || !user || !API_URL) return;
 
     const fetchMessages = async () => {
       const token = localStorage.getItem('token');
@@ -120,8 +104,8 @@ const ChatPage = () => {
         const filtered = data
           .filter(
             (msg: Message) =>
-              (msg.sender._id === user.id && msg.recipient._id === selectedUser.id) ||
-              (msg.sender._id === selectedUser.id && msg.recipient._id === user.id)
+              (msg.sender._id === user?.id && msg.recipient._id === selectedUser.id) ||
+              (msg.sender._id === selectedUser.id && msg.recipient._id === user?.id)
           )
           .sort(
             (a: Message, b: Message) =>
@@ -135,14 +119,14 @@ const ChatPage = () => {
     };
 
     fetchMessages();
-  }, [selectedUser, user, API_URL]);
+  }, [selectedUser, user, API_URL, loading]);
 
-  // 🔽 Auto-scroll
+  // Scroll na konec zpráv
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ✉️ Odeslání zprávy
+  // Odeslání zprávy
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedUser || !API_URL) return;
 
@@ -175,17 +159,6 @@ const ChatPage = () => {
       console.error('Chyba při spojení:', err);
     }
   };
-
-  // ⏳ Loading
-  if (loading) {
-    return <div className="p-6 text-gray-500">Načítání uživatele...</div>;
-  }
-
-  // ⛔ Redirect if not logged in
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
 
   return (
     <div className="p-6">
@@ -221,20 +194,18 @@ const ChatPage = () => {
         <div className="flex-1 p-6 flex flex-col">
           {selectedUser ? (
             <>
-              <h3 className="text-lg font-bold mb-4">
-                Chat s {selectedUser.username}
-              </h3>
+              <h3 className="text-lg font-bold mb-4">Chat s {selectedUser.username}</h3>
               <div className="flex-1 overflow-y-auto mb-4 space-y-2">
                 {messages.map((msg) => (
                   <div
                     key={msg._id}
                     className={`flex ${
-                      msg.sender._id === user.id ? 'justify-end' : 'justify-start'
+                      msg.sender._id === user?.id ? 'justify-end' : 'justify-start'
                     }`}
                   >
                     <div
                       className={`rounded-xl px-4 py-2 max-w-[70%] ${
-                        msg.sender._id === user.id
+                        msg.sender._id === user?.id
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-200'
                       }`}
@@ -263,9 +234,7 @@ const ChatPage = () => {
               </div>
             </>
           ) : (
-            <p className="text-gray-600">
-              Vyber uživatele, se kterým chceš chatovat.
-            </p>
+            <p className="text-gray-600">Vyber uživatele, se kterým chceš chatovat.</p>
           )}
         </div>
       </div>
