@@ -37,6 +37,7 @@ const ChatPage = () => {
     navigate('/login');
   };
 
+  // Socket připojení
   useEffect(() => {
     if (user && API_URL && !socket.current) {
       socket.current = io(API_URL);
@@ -57,6 +58,7 @@ const ChatPage = () => {
     };
   }, [user, selectedUser, API_URL]);
 
+  // Načtení uživatelů
   useEffect(() => {
     if (!user || !API_URL) return;
 
@@ -71,7 +73,6 @@ const ChatPage = () => {
 
         const data = await res.json();
 
-        // Vyloučíme aktuálního uživatele
         const withId = data
           .filter((u: any) => u._id !== user?.id)
           .map((u: any) => ({ ...u, id: u._id }));
@@ -85,6 +86,7 @@ const ChatPage = () => {
     fetchUsers();
   }, [user, API_URL]);
 
+  // Načtení zpráv
   useEffect(() => {
     if (!selectedUser || !API_URL) return;
 
@@ -99,11 +101,13 @@ const ChatPage = () => {
 
         const data = await res.json();
 
-        const filtered = data.filter(
-          (msg: Message) =>
-            (msg.sender._id === user?.id && msg.recipient._id === selectedUser.id) ||
-            (msg.sender._id === selectedUser.id && msg.recipient._id === user?.id)
-        );
+        const filtered = data
+          .filter(
+            (msg: Message) =>
+              (msg.sender._id === user?.id && msg.recipient._id === selectedUser.id) ||
+              (msg.sender._id === selectedUser.id && msg.recipient._id === user?.id)
+          )
+          .sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
         setMessages(filtered);
       } catch (error) {
@@ -114,10 +118,12 @@ const ChatPage = () => {
     fetchMessages();
   }, [selectedUser, user, API_URL]);
 
+  // Scroll na konec zpráv
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Odeslání zprávy
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedUser || !API_URL) return;
 
@@ -225,7 +231,9 @@ const ChatPage = () => {
               </div>
             </>
           ) : (
-            <p className="text-gray-600">Vyber uživatele, se kterým chceš chatovat.</p>
+            <p className="text-gray-600">
+              Vyber uživatele, se kterým chceš chatovat.
+            </p>
           )}
         </div>
       </div>
