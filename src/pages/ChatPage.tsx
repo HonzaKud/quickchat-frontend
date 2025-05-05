@@ -23,7 +23,12 @@ const ChatPage = () => {
   const navigate = useNavigate();
 
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(
+    () => {
+      const saved = localStorage.getItem('selectedUser');
+      return saved ? JSON.parse(saved) : null;
+    }
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
@@ -33,6 +38,7 @@ const ChatPage = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('selectedUser');
     setUser(null);
     navigate('/login');
   };
@@ -74,7 +80,7 @@ const ChatPage = () => {
         const data = await res.json();
 
         const withId = data
-          .filter((u: any) => u._id !== user?.id)
+          .filter((u: any) => u._id !== user.id)
           .map((u: any) => ({ ...u, id: u._id }));
 
         setUsers(withId);
@@ -89,6 +95,8 @@ const ChatPage = () => {
   // Načtení zpráv
   useEffect(() => {
     if (!selectedUser || !API_URL) return;
+
+    localStorage.setItem('selectedUser', JSON.stringify(selectedUser));
 
     const fetchMessages = async () => {
       const token = localStorage.getItem('token');
@@ -107,7 +115,10 @@ const ChatPage = () => {
               (msg.sender._id === user?.id && msg.recipient._id === selectedUser.id) ||
               (msg.sender._id === selectedUser.id && msg.recipient._id === user?.id)
           )
-          .sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+          .sort(
+            (a: Message, b: Message) =>
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
 
         setMessages(filtered);
       } catch (error) {
