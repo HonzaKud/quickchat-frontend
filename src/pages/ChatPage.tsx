@@ -37,7 +37,6 @@ const ChatPage = () => {
     navigate('/login');
   };
 
-  // Socket připojení
   useEffect(() => {
     if (user && API_URL && !socket.current) {
       socket.current = io(API_URL);
@@ -58,7 +57,6 @@ const ChatPage = () => {
     };
   }, [user, selectedUser, API_URL]);
 
-  // Načtení uživatelů
   useEffect(() => {
     if (loading || !user || !API_URL) return;
 
@@ -86,7 +84,6 @@ const ChatPage = () => {
     fetchUsers();
   }, [user, API_URL, loading]);
 
-  // Načtení zpráv
   useEffect(() => {
     if (loading || !selectedUser || !user || !API_URL) return;
 
@@ -107,10 +104,7 @@ const ChatPage = () => {
               (msg.sender._id === user?.id && msg.recipient._id === selectedUser.id) ||
               (msg.sender._id === selectedUser.id && msg.recipient._id === user?.id)
           )
-          .sort(
-            (a: Message, b: Message) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
+          .sort((a: Message, b: Message) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
         setMessages(filtered);
       } catch (error) {
@@ -121,12 +115,10 @@ const ChatPage = () => {
     fetchMessages();
   }, [selectedUser, user, API_URL, loading]);
 
-  // Scroll na konec zpráv
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Odeslání zprávy
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedUser || !API_URL) return;
 
@@ -161,81 +153,84 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-        >
-          Odhlásit se
-        </button>
-      </div>
-
-      <div className="flex bg-white shadow-md rounded-xl overflow-hidden min-h-[500px]">
-        {/* Uživatelé */}
-        <div className="w-64 border-r p-4 bg-gray-100">
-          <h3 className="text-lg font-semibold mb-4">Uživatelé</h3>
-          <ul className="space-y-2">
-            {users.map((u) => (
-              <li
-                key={u.id}
-                onClick={() => setSelectedUser(u)}
-                className={`cursor-pointer p-2 rounded ${
-                  selectedUser?.id === u.id ? 'bg-blue-100' : 'hover:bg-gray-200'
-                }`}
-              >
-                {u.username}
-              </li>
-            ))}
-          </ul>
+    <div className="min-h-screen bg-gradient-to-tr from-slate-100 to-slate-200 p-6">
+      <div className="max-w-6xl mx-auto shadow-xl rounded-3xl overflow-hidden backdrop-blur-md bg-white/60 border border-slate-200">
+        <div className="flex justify-between items-center p-4 border-b border-slate-300">
+          <h1 className="text-2xl font-bold text-slate-800">QuickChat</h1>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+          >
+            Odhlásit se
+          </button>
         </div>
 
-        {/* Chat */}
-        <div className="flex-1 p-6 flex flex-col">
-          {selectedUser ? (
-            <>
-              <h3 className="text-lg font-bold mb-4">Chat s {selectedUser.username}</h3>
-              <div className="flex-1 overflow-y-auto mb-4 space-y-2">
-                {messages.map((msg) => (
-                  <div
-                    key={msg._id}
-                    className={`flex ${
-                      msg.sender._id === user?.id ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
+        <div className="flex h-[600px]">
+          {/* Uživatelé */}
+          <div className="w-64 border-r border-slate-300 bg-white/50 p-4">
+            <h3 className="text-lg font-semibold mb-4 text-slate-700">Uživatelé</h3>
+            <ul className="space-y-2">
+              {users.map((u) => (
+                <li
+                  key={u.id}
+                  onClick={() => setSelectedUser(u)}
+                  className={`cursor-pointer p-2 rounded transition text-slate-800 ${
+                    selectedUser?.id === u.id ? 'bg-indigo-200' : 'hover:bg-slate-200'
+                  }`}
+                >
+                  {u.username}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Chat */}
+          <div className="flex-1 p-6 flex flex-col bg-white/30">
+            {selectedUser ? (
+              <>
+                <h3 className="text-xl font-bold mb-4 text-slate-800">Chat s {selectedUser.username}</h3>
+                <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+                  {messages.map((msg) => (
                     <div
-                      className={`rounded-xl px-4 py-2 max-w-[70%] ${
-                        msg.sender._id === user?.id
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200'
+                      key={msg._id}
+                      className={`flex ${
+                        msg.sender._id === user?.id ? 'justify-end' : 'justify-start'
                       }`}
                     >
-                      {msg.content}
+                      <div
+                        className={`rounded-2xl px-4 py-2 max-w-[70%] shadow-md ${
+                          msg.sender._id === user?.id
+                            ? 'bg-indigo-500 text-white'
+                            : 'bg-white text-slate-800 border border-slate-300'
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
 
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Napiš zprávu..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <button
-                  onClick={sendMessage}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                >
-                  Odeslat
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="text-gray-600">Vyber uživatele, se kterým chceš chatovat.</p>
-          )}
+                <div className="flex gap-2 mt-2">
+                  <input
+                    type="text"
+                    placeholder="Napiš zprávu..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+                  >
+                    Odeslat
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="text-slate-600">Vyber uživatele, se kterým chceš chatovat.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
