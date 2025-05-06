@@ -53,21 +53,19 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        {/* Úvodní popis */}
+    <div className="min-h-screen bg-gradient-to-tr from-indigo-100 via-blue-100 to-slate-100 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white/60 border border-slate-300 shadow-xl rounded-3xl p-8 backdrop-blur-md">
         <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-blue-600 mb-2">QuickChat</h1>
-          <p className="text-gray-700 mb-1">Jednoduchá chatovací aplikace</p>
-          <ul className="text-sm text-gray-600 list-disc list-inside">
+          <h1 className="text-4xl font-extrabold text-indigo-600 mb-2">QuickChat</h1>
+          <p className="text-slate-700">Jednoduchá chatovací aplikace</p>
+          <ul className="mt-2 text-sm text-slate-600 list-disc list-inside space-y-1">
             <li>📨 Soukromé zprávy mezi uživateli</li>
             <li>⚡ Rychlé přepínání kontaktů</li>
-            <li>🔒 Zabezpečené přihlášení pomocí tokenu</li>
+            <li>🔒 Bezpečné přihlášení pomocí tokenu</li>
           </ul>
         </div>
 
-        {/* Přihlašovací formulář */}
-        <h2 className="text-2xl font-semibold mb-4 text-center text-gray-800">Přihlášení</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-center text-slate-800">Přihlášení</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
@@ -76,7 +74,7 @@ const LoginPage = () => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
           <input
             type="password"
@@ -85,11 +83,11 @@ const LoginPage = () => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+            className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
           >
             Přihlásit se
           </button>
@@ -99,10 +97,9 @@ const LoginPage = () => {
           <p className="text-red-600 text-center mt-4">{message}</p>
         )}
 
-        {/* Odkaz na registraci */}
-        <p className="mt-6 text-sm text-center text-gray-600">
+        <p className="mt-6 text-sm text-center text-slate-700">
           Nemáš účet?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link to="/register" className="text-indigo-600 hover:underline font-semibold">
             Registruj se
           </Link>
         </p>
