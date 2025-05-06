@@ -153,10 +153,10 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-slate-100 to-slate-200 p-6">
+    <div className="min-h-screen bg-gradient-to-tr from-blue-100 via-purple-100 to-pink-100 p-6">
       <div className="max-w-6xl mx-auto shadow-xl rounded-3xl overflow-hidden backdrop-blur-md bg-white/60 border border-slate-200">
-        <div className="flex justify-between items-center p-4 border-b border-slate-300">
-          <h1 className="text-2xl font-bold text-slate-800">QuickChat</h1>
+        <div className="flex justify-between items-center p-4 border-b border-slate-300 bg-white/40">
+          <h1 className="text-2xl font-bold text-slate-800">💬 QuickChat</h1>
           <button
             onClick={handleLogout}
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
@@ -174,11 +174,11 @@ const ChatPage = () => {
                 <li
                   key={u.id}
                   onClick={() => setSelectedUser(u)}
-                  className={`cursor-pointer p-2 rounded transition text-slate-800 ${
-                    selectedUser?.id === u.id ? 'bg-indigo-200' : 'hover:bg-slate-200'
+                  className={`cursor-pointer p-2 rounded transition text-slate-800 font-medium ${
+                    selectedUser?.id === u.id ? 'bg-gradient-to-r from-indigo-400 to-purple-400 text-white shadow-md' : 'hover:bg-indigo-100'
                   }`}
                 >
-                  {u.username}
+                  👤 {u.username}
                 </li>
               ))}
             </ul>
@@ -198,9 +198,9 @@ const ChatPage = () => {
                       }`}
                     >
                       <div
-                        className={`rounded-2xl px-4 py-2 max-w-[70%] shadow-md ${
+                        className={`rounded-2xl px-4 py-2 max-w-[70%] shadow ${
                           msg.sender._id === user?.id
-                            ? 'bg-indigo-500 text-white'
+                            ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white'
                             : 'bg-white text-slate-800 border border-slate-300'
                         }`}
                       >
@@ -221,7 +221,7 @@ const ChatPage = () => {
                   />
                   <button
                     onClick={sendMessage}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow"
                   >
                     Odeslat
                   </button>
